@@ -1,0 +1,80 @@
+# mower-opi OrangePi 2W for Linux
+
+#https://forum.armbian.com/topic/27055-how-to-enable-spi/
+#https://vk.com/@digital_club21-qsg42-prodolzhaem-rabotat-s-gpio-spi-na-primere-orange-pi
+#http://www.orangepi.org/html/hardWare/computerAndMicrocontrollers/service-and-support/Orange-Pi-Zero-2W.html
+#https://drive.google.com/drive/folders/1YMomjG-_jbfYcXZ0_D60XK93awgyjcVq
+
+####################### I2C ############################################
+# I2C BARO bus:1 for RPi, bus:3 for Opi armbian, bus:2 for Opi opi
+# Only probe i2c-x 
+define HAL_LINUX_I2C_EXTERNAL_BUS_MASK 1 << 2
+define HAL_LINUX_I2C_INTERNAL_BUS_MASK 0 
+
+#I2C compass
+COMPASS QMC5883P I2C:2:0x2C false ROTATION_NONE
+define AP_COMPASS_PROBING_ENABLED 1
+
+#BARO BMP085 I2C:2:0x77  
+define HAL_BARO_ALLOW_INIT_NO_BARO
+
+# I2C INA226 battery monitor default address  0x40
+# bus:1 for RPi,  bus:3 for Opi
+define HAL_BATTMON_INA2XX_BUS 2
+define HAL_BATTMON_INA2XX_ADDR 64
+define HAL_BATT_MONITOR_DEFAULT 21
+
+###################### IMUs ##############################################
+IMU Invensense SPI:mpu6500 ROTATION_NONE
+IMU Invensensev2 SPI:ICM20948 ROTATION_NONE
+
+#            NAME      BUS SUBDEV   MODE   BPW    CS_PIN       LOWSPD HIGHSPD
+LINUX_SPIDEV "mpu6500"  1   0   SPI_MODE_3  8   SPI_CS_KERNEL  1*MHZ  4*MHZ
+LINUX_SPIDEV "ICM20948" 1   0   SPI_MODE_3  8   SPI_CS_KERNEL  1*MHZ  10*MHZ
+
+define INS_MAX_INSTANCES 3
+
+####################### GPIO: LEDS, BUZZER ##############################
+define DEFAULT_NTF_LED_TYPES (Notify_LED_Board)
+define AP_NOTIFY_GPIO_LED_2_ENABLED 1
+define HAL_GPIO_A_LED_PIN      15 // OPi2W: 15,29,31 - ноги на плате, RPi2W 22,5,6-GPIO  ) 
+define HAL_GPIO_B_LED_PIN      29 
+#define HAL_GPIO_C_LED_PIN      22 
+define HAL_GPIO_LED_ON          1
+
+define AP_NOTIFY_BUZZER_ENABLED  1
+define HAL_BUZZER_PIN           31 
+##########################################################################
+
+define HAL_LINUX_GPIO_RPI_ENABLED 1   // used to use low level GPIO pin control  
+define HAL_LINUX_GPIO_OBAL_ENABLED 1  // used to control internal PWM outputs (through syscalls)
+define HAL_LINUX_GPIO_SYSFS_ENABLED 1 // hack: used only to suppress warning redefinition, used GPIO_RPI pins control
+
+define CONFIG_USE_ELRS 1              //  disable OBAL rcIn (PWM inputs), use uart interface to elrs receiver (CRSF)
+#define CONFIG_USE_INTERNAL_PWM 1      // use internal PWM output (diasble RCA9685)  
+
+#################  ADS1115 control #########################################
+define OBAL_ALLOW_ADC            0
+
+define HAL_BATT_VOLT_PIN                  0
+define HAL_BATT_CURR_PIN                  1
+define HAL_BATT_VOLT_SCALE                9.85f
+define HAL_BATT_CURR_SCALE                203.0f
+############################################################################
+
+define HAL_BOARD_LOG_DIRECTORY "/var/ardupilot/logs"
+define HAL_BOARD_TERRAIN_DIRECTORY "/var/ardupilot/terrain"
+define HAL_BOARD_STORAGE_DIRECTORY "/var/ardupilot"
+define HAL_PARAM_DEFAULTS_PATH "/var/ardupilot/ardupilot.parm"
+
+define DEBUG 0
+
+#define CRSF_DEBUG 1
+#define CRSF_DEBUG_TELEM 1
+#define CRSF_DEBUG_PARAMS 1
+
+#define AP_RCPROTOCOL_ENABLED 1
+#define AP_RCPROTOCOL_СRSF_ENABLED 1
+
+// FIXME: use of this define should go away:
+define CONFIG_HAL_BOARD_SUBTYPE HAL_BOARD_SUBTYPE_LINUX_OBAL_V1

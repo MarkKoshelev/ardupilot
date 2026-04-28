@@ -36,8 +36,8 @@
 #define ADS1115_PGA_2P048           0x02 << ADS1115_PGA_SHIFT // default
 #define ADS1115_PGA_1P024           0x03 << ADS1115_PGA_SHIFT
 #define ADS1115_PGA_0P512           0x04 << ADS1115_PGA_SHIFT
-#define ADS1115_PGA_0P256           0x05 << ADS1115_PGA_SHIFT
-#define ADS1115_PGA_0P256B          0x06 << ADS1115_PGA_SHIFT
+#define ADS1115_PGA_0P256           0x05 << ADS1115_PGA_SHIFT // (+/-256mv gain 16)
+#define ADS1115_PGA_0P256B          0x06 << ADS1115_PGA_SHIFT 
 #define ADS1115_PGA_0P256C          0x07 << ADS1115_PGA_SHIFT
 
 #define ADS1115_MV_6P144            0.187500f
@@ -142,12 +142,29 @@ bool AP_ADC_ADS1115::_start_conversion(uint8_t channel)
         be16_t val;
     } config;
 
+    switch ( channel)
+    {
+       case 0:
+           _gain = ADS1115_PGA_4P096; // gain 1
+           break;
+       case 1:
+           _gain = ADS1115_PGA_0P256; // gain 16
+           break;
+       case 2:
+       case 3:
+       case 4:
+       case 5:
+       default:
+          _gain = ADS1115_PGA_4P096;
+    }
+
     config.reg = ADS1115_RA_CONFIG;
     config.val = htobe16(ADS1115_OS_ACTIVE | _gain | mux_table[channel] |
                          ADS1115_MODE_SINGLESHOT | ADS1115_COMP_QUE_DISABLE |
                          ADS1115_RATE_250);
 
-    return _dev->transfer((uint8_t *)&config, sizeof(config), nullptr, 0);
+    bool ret  = _dev->transfer((uint8_t *)&config, sizeof(config), nullptr, 0);
+    return ret;
 }
 
 size_t AP_ADC_ADS1115::read(adc_report_s *report, size_t length) const
@@ -156,7 +173,6 @@ size_t AP_ADC_ADS1115::read(adc_report_s *report, size_t length) const
         report[i].data = _samples[i].data;
         report[i].id = _samples[i].id;
     }
-
     return length;
 }
 
@@ -195,8 +211,8 @@ float AP_ADC_ADS1115::_convert_register_data_to_mv(int16_t word) const
         AP_HAL::panic("ADS1115: wrong gain selected");
         break;
     }
-
-    return (float) word * pga;
+    float ret_converted = (float) word * pga;
+    return ret_converted;
 }
 
 void AP_ADC_ADS1115::_update()

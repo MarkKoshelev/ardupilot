@@ -21,6 +21,18 @@
 
 #if AP_RCPROTOCOL_CRSF_ENABLED
 
+#ifndef RCPROTOCOL_CRSF_DEBUG
+#define RCPROTOCOL_CRSF_DEBUG 0
+#endif
+
+#if RCPROTOCOL_CRSF_DEBUG
+#include <stdio.h>
+#define debug(fmt, args ...)  do {printf("%s:%d: " fmt "\n", __FUNCTION__, __LINE__, ## args); } while(0)
+#else
+#define debug(fmt, args ...)
+#endif 
+
+
 #include "AP_RCProtocol.h"
 #include "AP_RCProtocol_CRSF.h"
 #include <AP_HAL/AP_HAL.h>
@@ -88,6 +100,7 @@ extern const AP_HAL::HAL& hal;
 //#define CRSF_DEBUG_CHARS
 //#define CRSF_DEBUG_TELEM
 //#define CRSF_DEBUG_PARAMS
+
 #if defined(CRSF_DEBUG) || defined(CRSF_DEBUG_TELEM) || defined(CRSF_DEBUG_PARAMS)
 # define debug(fmt, args...)	hal.console->printf("CRSF: " fmt "\n", ##args)
 # define get_frame_type(byte, subtype) AP_CRSF_Protocol::get_frame_type(byte, subtype)
@@ -116,6 +129,9 @@ AP_RCProtocol_CRSF* AP_RCProtocol_CRSF::_singleton;
 
 AP_RCProtocol_CRSF::AP_RCProtocol_CRSF(AP_RCProtocol &_frontend) : AP_RCProtocol_Backend(_frontend)
 {
+
+debug("AP_RCProtocol_CRSF::AP_RCProtocol_CRSF\n");
+
 #if !APM_BUILD_TYPE(APM_BUILD_UNKNOWN)
     if (_singleton != nullptr) {
         AP_HAL::panic("Duplicate CRSF handler");

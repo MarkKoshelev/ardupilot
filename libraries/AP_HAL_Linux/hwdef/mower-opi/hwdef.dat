@@ -69,6 +69,10 @@ define HAL_PARAM_DEFAULTS_PATH "/var/ardupilot/ardupilot.parm"
 
 define DEBUG 0
 
+########### 
+define RCPROTOCOL_DEBUG 1
+define RCPROTOCOL_CRSF_DEBUG 1
+
 #define CRSF_DEBUG 1
 #define CRSF_DEBUG_TELEM 1
 #define CRSF_DEBUG_PARAMS 1

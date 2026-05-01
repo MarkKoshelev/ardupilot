@@ -29,6 +29,17 @@
 
 class AP_RCProtocol_Backend;
 
+#ifndef RCPROTOCOL_DEBUG
+#define RCPROTOCOL_DEBUG 0
+#endif
+
+#if RCPROTOCOL_DEBUG
+#include <stdio.h>
+#define debug(fmt, args ...)  do {printf("%s:%d: " fmt "\n", __FUNCTION__, __LINE__, ## args); } while(0)
+#else
+#define debug(fmt, args ...)
+#endif 
+
 class AP_RCProtocol {
 public:
 
@@ -107,7 +118,10 @@ public:
 
 #if AP_RCPROTOCOL_ENABLED
 
-    AP_RCProtocol() {}
+    AP_RCProtocol()
+	{
+		debug("AP_RCProtocol::AP_RCProtocol()");
+	}
     ~AP_RCProtocol();
     friend class AP_RCProtocol_Backend;
 

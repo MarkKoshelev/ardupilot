@@ -38,15 +38,28 @@
     CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_NAVIO2 || \
     CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_EDGE || \
     CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_PILOTPI || \
-    CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_T3_GEM_O1
+    CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_T3_GEM_O1 || \
+    CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_OBAL_V1
 
 extern const AP_HAL::HAL& hal;
+
+#ifndef RCPROTOCOL_DEBUG
+#define RCPROTOCOL_DEBUG 0
+#endif
+
+#if RCPROTOCOL_DEBUG
+#include <stdio.h>
+#define debug(fmt, args ...)  do {printf("%s:%d: " fmt "\n", __FUNCTION__, __LINE__, ## args); } while(0)
+#else
+#define debug(fmt, args ...)
+#endif 
 
 using namespace Linux;
 
 /*
   open a SBUS UART
  */
+/*
 int RCInput_RCProtocol::open_sbus(const char *path)
 {
     int fd = open(path, O_RDWR | O_NONBLOCK | O_CLOEXEC);
@@ -78,10 +91,11 @@ int RCInput_RCProtocol::open_sbus(const char *path)
 
     return fd;
 }
-
+*/
 /*
   open a 115200 UART
  */
+/*
 int RCInput_RCProtocol::open_115200(const char *path)
 {
     int fd = open(path, O_RDWR | O_NONBLOCK | O_CLOEXEC);
@@ -112,16 +126,20 @@ int RCInput_RCProtocol::open_115200(const char *path)
 
     return fd;
 }
-
+*/
 // constructor
-RCInput_RCProtocol::RCInput_RCProtocol(const char *_dev_inverted, const char *_dev_115200) :
-    dev_inverted(_dev_inverted),
-    dev_115200(_dev_115200)
+RCInput_RCProtocol::RCInput_RCProtocol(const char *_dev_inverted, const char *_dev_115200)// :
+//    dev_inverted(_dev_inverted),
+//    dev_115200(_dev_115200)
 {
+debug("RCInput_RCProtocol::RCInput_RCProtocol");
 }
 
 void RCInput_RCProtocol::init()
 {
+debug("RCInput_RCProtocol::init");
+
+/*
     if (dev_inverted) {
         fd_inverted = open_sbus(dev_inverted);
     } else {
@@ -133,12 +151,15 @@ void RCInput_RCProtocol::init()
     } else {
         fd_115200 = -1;
     }
+*/
     AP::RC().init();
-    printf("SBUS FD %d  115200 FD %d\n", fd_inverted, fd_115200);
+//    printf("SBUS FD %d  115200 FD %d\n", fd_inverted, fd_115200);
 }
 
 void RCInput_RCProtocol::_timer_tick(void)
 {
+ AP::RC().update();
+/*
     uint8_t b[80];
 
     if (fd_inverted != -1) {
@@ -157,7 +178,7 @@ void RCInput_RCProtocol::_timer_tick(void)
             }
         }
     }
-
+*/
     if (AP::RC().new_input()) {
         last_frame_ms = AP_HAL::millis();
         uint8_t n = AP::RC().num_channels();
@@ -167,9 +188,9 @@ void RCInput_RCProtocol::_timer_tick(void)
         _num_channels = n;
         rc_input_count++;
     }
-
+/*
     uint32_t now = AP_HAL::millis();
-    if (fd_inverted != -1 && now - last_frame_ms > 2000) {
+   if (fd_inverted != -1 && now - last_frame_ms > 2000) {
         // no inverted data for 2s, flip baudrate
         close(fd_inverted);
         inverted_is_115200 = !inverted_is_115200;
@@ -180,6 +201,7 @@ void RCInput_RCProtocol::_timer_tick(void)
         }
         last_frame_ms = now;
     }
+*/
 }
 
 #endif // HAL

@@ -39,6 +39,17 @@
 
 #define DEBUG 0
 
+
+#ifndef LINUX_SPI_DEBUG
+#define LINUX_SPI_DEBUG 0
+#endif
+
+#if LINUX_SPI_DEBUG
+#define debug(fmt, args ...)  do {printf("%s:%d: " fmt "\n", __FUNCTION__, __LINE__, ## args); } while(0)
+#else
+#define debug(fmt, args ...)
+#endif 
+
 extern const AP_HAL::HAL& hal;
 
 namespace Linux {
@@ -136,6 +147,8 @@ SPIDevice::SPIDevice(SPIBus &bus, SPIDesc &device_desc)
     : _bus(bus)
     , _desc(device_desc)
 {
+   debug("SPIDevice::SPIDevice %d %d %d cs_pin: %d\n", _bus.bus, _desc.subdev, _desc.highspeed, _desc.cs_pin);
+
     set_device_bus(_bus.bus);
     set_device_address(_desc.subdev);
     _speed = _desc.highspeed;
@@ -144,10 +157,9 @@ SPIDevice::SPIDevice(SPIBus &bus, SPIDesc &device_desc)
         _cs = hal.gpio->channel(_desc.cs_pin);
         if (!_cs) {
             AP_HAL::panic("Unable to instantiate cs pin");
+            debug("SPIDevice::SPIDevice panic %d %d %d cs_pin: %d\n", _bus.bus, _desc.subdev, _desc.highspeed, _desc.cs_pin);
         }
-
         _cs->mode(HAL_GPIO_OUTPUT);
-
         // do not hold the SPI bus initially
         _cs_release();
     }
@@ -161,6 +173,8 @@ SPIDevice::~SPIDevice()
 
 bool SPIDevice::set_speed(AP_HAL::Device::Speed speed)
 {
+   debug("SPIDevice::set_speed speed: %d\n", speed);
+
     switch (speed) {
     case AP_HAL::Device::SPEED_HIGH:
         _speed = _desc.highspeed;
@@ -179,6 +193,7 @@ bool SPIDevice::transfer(const uint8_t *send, uint32_t send_len,
     struct spi_ioc_transfer msgs[2] = { };
     unsigned nmsgs = 0;
     int fd = _bus.fd[_desc.subdev];
+   debug("SPIDevice::transfer send_len: %d recv_len %d\n", send_len, recv_len);
 
     if (send && send_len != 0) {
         msgs[nmsgs].tx_buf = (uint64_t) send;
@@ -258,6 +273,7 @@ bool SPIDevice::transfer_fullduplex(const uint8_t *send, uint8_t *recv,
 {
     struct spi_ioc_transfer msgs[1] = { };
     int fd = _bus.fd[_desc.subdev];
+   debug("SPIDevice::transfer_fullduplex len: %d\n", len);
 
     if (!send || !recv || len == 0) {
         return false;
@@ -298,6 +314,8 @@ bool SPIDevice::transfer_fullduplex(uint8_t *send_recv, uint32_t len)
 
 void SPIDevice::_cs_assert()
 {
+   debug("SPIDevice::_cs_assert\n");
+
     if (_desc.cs_pin == SPI_CS_KERNEL) {
         return;
     }
@@ -307,6 +325,8 @@ void SPIDevice::_cs_assert()
 
 void SPIDevice::_cs_release()
 {
+   debug("SPIDevice::_cs_release\n");
+
     if (_desc.cs_pin == SPI_CS_KERNEL) {
         return;
     }
@@ -316,12 +336,17 @@ void SPIDevice::_cs_release()
 
 AP_HAL::Semaphore *SPIDevice::get_semaphore()
 {
+   debug("SPIDevice::Semaphore\n");
+
     return &_bus.sem;
 }
 
 AP_HAL::Device::PeriodicHandle SPIDevice::register_periodic_callback(
     uint32_t period_usec, AP_HAL::Device::PeriodicCb cb)
+
 {
+   debug("SPIDevice::PeriodicHandle\n");
+
     TimerPollable *p = _bus.thread.add_timer(cb, &_bus, period_usec);
     if (!p) {
         AP_HAL::panic("Could not create periodic callback");
@@ -342,6 +367,8 @@ AP_HAL::Device::PeriodicHandle SPIDevice::register_periodic_callback(
 bool SPIDevice::adjust_periodic_callback(
     AP_HAL::Device::PeriodicHandle h, uint32_t period_usec)
 {
+   debug("SPIDevice::adjust_periodic_callback\n");
+
     return _bus.thread.adjust_timer(static_cast<TimerPollable*>(h), period_usec);
 }
 
@@ -350,6 +377,7 @@ AP_HAL::SPIDevice *
 SPIDeviceManager::get_device_ptr(const char *name)
 {
     SPIDesc *desc = nullptr;
+   debug("SPIDevice::get_device_ptr name %s\n", name);
 
     /* Find the bus description in the table */
     for (uint8_t i = 0; i < _n_device_desc; i++) {
@@ -388,11 +416,15 @@ SPIDeviceManager::get_device_ptr(const char *name)
 
 uint8_t SPIDeviceManager::get_count()
 {
+   debug("SPIDeviceManager::get_count\n");
+
    return _n_device_desc;
 }
 
 const char* SPIDeviceManager::get_device_name(uint8_t idx)
 {
+   debug("SPIDeviceManager::get_device_name %d\n", idx);
+
     return _device[idx].name;
 }
 
@@ -401,6 +433,8 @@ AP_HAL::SPIDevice *
 SPIDeviceManager::_create_device(SPIBus &b, SPIDesc &desc) const
 {
     // Ensure bus is open
+   debug("SPIDeviceManager::_create_device\n");
+
     b.open(desc.subdev);
 
     auto *dev = NEW_NOTHROW SPIDevice(b, desc);
@@ -415,6 +449,8 @@ SPIDeviceManager::_create_device(SPIBus &b, SPIDesc &desc) const
 
 void SPIDeviceManager::_unregister(SPIBus &b)
 {
+   debug("SPIDeviceManager::_unregister\n");
+
     if (b.ref == 0 || --b.ref > 0) {
         return;
     }
@@ -430,6 +466,8 @@ void SPIDeviceManager::_unregister(SPIBus &b)
 
 void SPIDeviceManager::teardown()
 {
+   debug("SPIDeviceManager::teardown\n");
+
     for (auto it = _buses.begin(); it != _buses.end(); it++) {
         /* Try to stop thread - it may not even be started yet */
         (*it)->thread.stop();

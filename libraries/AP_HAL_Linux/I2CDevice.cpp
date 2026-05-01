@@ -56,6 +56,16 @@
 #define I2C_RDRW_IOCTL_MAX_MSGS 42
 #endif
 
+#ifndef GPIO_I2C_LINUX_DEBUG
+#define GPIO_I2C_LINUX_DEBUG 1
+#endif
+
+#if GPIO_I2C_LINUX_DEBUG
+#define debug(fmt, args ...)  do {printf("%s:%d: " fmt "\n", __FUNCTION__, __LINE__, ## args); } while(0)
+#else
+#define debug(fmt, args ...)
+#endif 
+
 extern const AP_HAL::HAL& hal;
 
 namespace Linux {
@@ -117,6 +127,7 @@ int I2CBus::open(uint8_t n)
 {
     char path[sizeof("/dev/i2c-XXX")];
     int r;
+	debug("I2CBus::open: %d\n", n);
 
     if (fd >= 0) {
         return -EBUSY;
@@ -134,6 +145,8 @@ int I2CBus::open(uint8_t n)
 
     bus = n;
 
+	debug("I2CBus::open:%s ok: %d\n", path, n);
+
     return fd;
 }
 
@@ -141,6 +154,7 @@ I2CDevice::I2CDevice(I2CBus &bus, uint8_t address)
     : _bus(bus)
     , _address(address)
 {
+	debug("I2CDevice::I2CDevice: %d %d\n", bus.bus, address);
     set_device_bus(bus.bus);
     set_device_address(address);
 }
@@ -148,12 +162,15 @@ I2CDevice::I2CDevice(I2CBus &bus, uint8_t address)
 I2CDevice::~I2CDevice()
 {
     // Unregister itself from the I2CDeviceManager
+ 	debug("I2CDevice::~I2CDevice\n");
     I2CDeviceManager::from(hal.i2c_mgr)->_unregister(_bus);
 }
 
 bool I2CDevice::transfer(const uint8_t *send, uint32_t send_len,
                          uint8_t *recv, uint32_t recv_len)
 {
+// 	debug("I2CDevice::transfer %d %d\n", send_len, recv_len );
+
     if (_split_transfers && send_len > 0 && recv_len > 0) {
         return transfer(send, send_len, nullptr, 0) &&
             transfer(nullptr, 0, recv, recv_len);
@@ -201,6 +218,7 @@ bool I2CDevice::read_registers_multiple(uint8_t first_reg, uint8_t *recv,
                                         uint32_t recv_len, uint8_t times)
 {
     const uint8_t max_times = I2C_RDRW_IOCTL_MAX_MSGS / 2;
+	debug("I2CDevice::read_registers_multiple %d %d %d\n", first_reg, recv_len, times );
 
     first_reg |= _read_flag;
 
@@ -317,6 +335,8 @@ AP_HAL::I2CDevice *
 I2CDeviceManager::_create_device(I2CBus &b, uint8_t address) const
 {
     auto *dev = NEW_NOTHROW I2CDevice(b, address);
+	debug("I2CDeviceManager::_create_device %d\n", address );
+ 
     if (!dev) {
         return nullptr;
     }

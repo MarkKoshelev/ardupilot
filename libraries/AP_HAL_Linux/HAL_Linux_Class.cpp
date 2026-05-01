@@ -163,7 +163,13 @@ static RCInput_Multi rcinDriver{2, NEW_NOTHROW RCInput_AioPRU, NEW_NOTHROW RCInp
       CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_PXFMINI || \
       CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_OBAL_V1 || \
       CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_CANZERO
-static RCInput_RPI rcinDriver;
+  #ifdef CONFIG_USE_ELRS
+  // static RCInput_RCProtocol rcinDriver{"/dev/ttyS0", NULL}; // TODO test  with /dev/ttyAMA0
+  static RCInput_RCProtocol rcinDriver{NULL, NULL}; // TODO test  with /dev/ttyAMA0
+  #else
+  TODO remove RC4
+  static RCInput_RPI rcinDriver;
+  #endif
 #elif AP_RCPROTOCOL_ZYNQ_ENABLED
 static RCInput_ZYNQ rcinDriver;
 #elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BEBOP
@@ -224,7 +230,14 @@ static ap::RCOutput_Tap rcoutDriver;
 #elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_EDGE
 static RCOutput_Sysfs rcoutDriver(0, 0, 15);
 #elif  CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_OBAL_V1
-static RCOutput_PCA9685 rcoutDriver(i2c_mgr_instance.get_device_ptr(1, PCA9685_PRIMARY_ADDRESS), 0, 0, RPI_GPIO_<17>());
+  #ifdef CONFIG_USE_INTERNAL_PWM
+  static RCOutput_Sysfs rcoutDriver(0, 0, 2);
+  #else
+  static Empty::RCOutput rcoutDriver;
+// TODO
+//  static RCOutput_PCA9685 rcoutDriver(i2c_mgr_instance.get_device_ptr(1, PCA9685_PRIMARY_ADDRESS), 0, 0, RPI_GPIO_<17>());
+#endif
+
 #elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_CANZERO
 static RCOutput_Sysfs rcoutDriver(0, 0, 2);
 #elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_PILOTPI

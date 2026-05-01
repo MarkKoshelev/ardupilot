@@ -419,6 +419,9 @@ void UARTDriver::configure_parity(uint8_t v) {
     _device->set_parity(v);
 }
 
+void UARTDriver::set_stop_bits(int n) {
+    _device->set_stop_bits(n);
+}
 /*
   return timestamp estimate in microseconds for when the start of
   a nbytes packet arrived on the uart. This should be treated as a

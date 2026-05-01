@@ -34,6 +34,8 @@ public:
 
     void configure_parity(uint8_t v) override;
 
+    void set_stop_bits(int n) override;
+
     virtual void set_flow_control(enum flow_control flow_control_setting) override
    {
        _device->set_flow_control(flow_control_setting);

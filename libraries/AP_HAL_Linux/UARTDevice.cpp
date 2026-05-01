@@ -11,6 +11,72 @@
 
 #include <AP_HAL/AP_HAL.h>
 
+
+#define SBUS_NUM_CHANNELS 16
+#define SBUS_CH17_MASK        0x01
+#define SBUS_CH18_MASK        0x02
+#define SBUS_LOST_FRAME_MASK  0x04
+#define SBUS_FAILSAFE_MASK    0x08
+
+typedef struct {
+      uint8_t lost_frame;
+      uint8_t failsafe;
+      uint8_t ch17, ch18;
+      uint16_t channels[SBUS_NUM_CHANNELS];
+    }  SbusData;
+
+
+void SbusRx_Parse(const uint8_t *buf_,  SbusData *data_) {
+	/* Grab the channel data */
+	data_->channels[0]  = (uint16_t)(buf_[1] |
+										((buf_[2] << 8) & 0x07FF));
+	data_->channels[1]  = (uint16_t)((buf_[2] >> 3) |
+										((buf_[3] << 5) & 0x07FF));
+	data_->channels[2]  = (uint16_t)((buf_[3] >> 6) |
+										(buf_[4] << 2) |
+										((buf_[5] << 10) & 0x07FF));
+	data_->channels[3]  = (uint16_t)((buf_[5] >> 1) |
+										((buf_[6] << 7) & 0x07FF));
+	data_->channels[4]  = (uint16_t)((buf_[6] >> 4) |
+										((buf_[7] << 4) & 0x07FF));
+	data_->channels[5]  = (uint16_t)((buf_[7] >> 7) |
+										(buf_[8] << 1) |
+										((buf_[9] << 9) & 0x07FF));
+	data_->channels[6]  = (uint16_t)((buf_[9] >> 2) |
+										((buf_[10] << 6) & 0x07FF));
+	data_->channels[7]  = (uint16_t)((buf_[10] >> 5) |
+										((buf_[11] << 3) & 0x07FF));
+	data_->channels[8]  = (uint16_t)(buf_[12] |
+										((buf_[13] << 8) & 0x07FF));
+	data_->channels[9]  = (uint16_t)((buf_[13] >> 3) |
+										((buf_[14] << 5) & 0x07FF));
+	data_->channels[10] = (uint16_t)((buf_[14] >> 6) |
+										(buf_[15] << 2) |
+										((buf_[16] << 10) & 0x07FF));
+	data_->channels[11] = (uint16_t)((buf_[16] >> 1) |
+										((buf_[17] << 7) & 0x07FF));
+	data_->channels[12] = (uint16_t)((buf_[17] >> 4) |
+										((buf_[18] << 4) & 0x07FF));
+	data_->channels[13] = (uint16_t)((buf_[18] >> 7) |
+										(buf_[19] << 1) |
+										((buf_[20] << 9) & 0x07FF));
+	data_->channels[14] = (uint16_t)((buf_[20] >> 2) |
+										((buf_[21] << 6) & 0x07FF));
+	data_->channels[15] = (uint16_t)((buf_[21] >> 5) |
+										((buf_[22] << 3) & 0x07FF));
+	/* CH 17 */
+	data_->ch17 = buf_[23] & SBUS_CH17_MASK;
+	/* CH 18 */
+	data_->ch18 = buf_[23] & SBUS_CH18_MASK;
+	/* Grab the lost frame */
+	data_->lost_frame = buf_[23] & SBUS_LOST_FRAME_MASK;
+	/* Grab the failsafe */
+	data_->failsafe = buf_[23] & SBUS_FAILSAFE_MASK;
+  return;
+}
+
+
+
 UARTDevice::UARTDevice(const char *device_path):
     _device_path(device_path)
 {
@@ -66,6 +132,16 @@ ssize_t UARTDevice::write(const uint8_t *buf, uint16_t n)
         ret = ::write(_fd, buf, n);
     }
 
+
+// SBUS parce
+
+if(n==25) {
+SbusData sbus_data;
+SbusRx_Parse(buf, &sbus_data);
+fprintf(stderr,"ch:%d,%d failsafe:%d, ch17:%d, ch18:%d, start:%d end:%d\n", sbus_data.channels[0], sbus_data.channels[1], sbus_data.failsafe,sbus_data.ch17,sbus_data.ch18,buf[0],buf[24]);
+}
+
+
     return ret;
 }
 
@@ -113,6 +189,9 @@ void UARTDevice::set_speed(uint32_t baudrate)
 {
     struct termios2 tio = { 0 };
 
+fprintf(stderr, "UARTDevice::set_speed: %s baudrate: %d\n", _device_path, baudrate);
+
+
     if (ioctl(_fd, TCGETS2, &tio) != 0) {
         ::fprintf(stderr, "Failed to read serial options for %s - %s\n",
                   _device_path, strerror(errno));
@@ -137,6 +216,9 @@ void UARTDevice::set_speed(uint32_t baudrate)
 
 void UARTDevice::set_flow_control(AP_HAL::UARTDriver::flow_control flow_control_setting)
 {
+
+fprintf(stderr, "UARTDevice::set_flow_control:%s\n", _device_path);
+
     if (_flow_control == flow_control_setting) {
         return;
     }
@@ -167,6 +249,7 @@ void UARTDevice::set_flow_control(AP_HAL::UARTDriver::flow_control flow_control_
 void UARTDevice::set_parity(int v)
 {
     struct termios2 t = { 0 };
+fprintf(stderr, "UARTDevice::set_parity:%s %d\n",_device_path, v);
 
     if (ioctl(_fd, TCGETS2, &t) != 0) {
         ::fprintf(stderr, "Failed to read serial options for %s - %s\n",
@@ -186,6 +269,32 @@ void UARTDevice::set_parity(int v)
     else {
         // disable parity
         t.c_cflag &= ~PARENB;
+    }
+
+    if (ioctl(_fd, TCSETS2, &t) != 0) {
+        ::fprintf(stderr, "Failed to set parity for %s - %s\n",
+                  _device_path, strerror(errno));
+        return;
+    }
+}
+
+void UARTDevice::set_stop_bits(int n)
+{
+    struct termios2 t = { 0 };
+
+fprintf(stderr, "UARTDevice::set_stop_bits: %s-%d\n",_device_path, n);
+
+    if (ioctl(_fd, TCGETS2, &t) != 0) {
+        ::fprintf(stderr, "Failed to read serial options for %s - %s\n",
+                  _device_path, strerror(errno));
+        return;
+    }
+
+    if (n == 2) {
+        t.c_cflag |= CSTOPB; // Set two stop bits
+
+    } else {
+        t.c_cflag &= ~CSTOPB; // Clear the flag to use one stop bit
     }
 
     if (ioctl(_fd, TCSETS2, &t) != 0) {

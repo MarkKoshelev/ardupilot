@@ -20,6 +20,7 @@ public:
         return _flow_control;
     }
     virtual void set_parity(int v) override;
+    virtual void set_stop_bits(int n) override;
 
 private:
     void _disable_crlf();

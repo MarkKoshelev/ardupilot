@@ -168,6 +168,7 @@ AP_SBusOut::update()
     hal.gpio->write(55, 0);
 #endif
 }
+#include <stdio.h>
 
 void AP_SBusOut::init() {
     uint16_t rate = sbus_rate.get();
@@ -194,12 +195,15 @@ void AP_SBusOut::init() {
         return;
     }
 
+//   fprintf(stderr,"AP_SerialManager::SerialProtocol_Sbus1 rate: %d sbus_frame_interval: %d\n",rate,sbus_frame_interval);
+
     // update baud param in case user looks at it
-    serial_manager->set_and_default_baud(AP_SerialManager::SerialProtocol_Sbus1, 0, 100000);
+#define SBUS_BOUND_RATE 100000
+    serial_manager->set_and_default_baud(AP_SerialManager::SerialProtocol_Sbus1, 0, SBUS_BOUND_RATE);
 
     auto &uart = *sbus1_uart;
 
-    uart.begin(100000, 16, 32);
+    uart.begin(SBUS_BOUND_RATE, 16, 32);
     uart.configure_parity(2);    // enable even parity
     uart.set_stop_bits(2);
     uart.set_unbuffered_writes(true);

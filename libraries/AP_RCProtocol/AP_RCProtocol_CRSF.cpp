@@ -27,9 +27,9 @@
 
 #if RCPROTOCOL_CRSF_DEBUG
 #include <stdio.h>
-#define debug(fmt, args ...)  do {printf("%s:%d: " fmt "\n", __FUNCTION__, __LINE__, ## args); } while(0)
+#define _debug(fmt, args ...)  do {printf("%s:%d: " fmt "\n", __FUNCTION__, __LINE__, ## args); } while(0)
 #else
-#define debug(fmt, args ...)
+#define _debug(fmt, args ...)
 #endif 
 
 
@@ -130,7 +130,7 @@ AP_RCProtocol_CRSF* AP_RCProtocol_CRSF::_singleton;
 AP_RCProtocol_CRSF::AP_RCProtocol_CRSF(AP_RCProtocol &_frontend) : AP_RCProtocol_Backend(_frontend)
 {
 
-debug("AP_RCProtocol_CRSF::AP_RCProtocol_CRSF\n");
+_debug("AP_RCProtocol_CRSF::AP_RCProtocol_CRSF\n");
 
 #if !APM_BUILD_TYPE(APM_BUILD_UNKNOWN)
     if (_singleton != nullptr) {
@@ -190,7 +190,7 @@ void AP_RCProtocol_CRSF::process_byte(uint8_t byte, uint32_t baudrate)
 // process a byte provided by a uart
 void AP_RCProtocol_CRSF::_process_byte(uint8_t byte)
 {
-    //debug("process_byte(0x%x)", byte);
+    //_debug("process_byte(0x%x)", byte);
     const uint32_t now = AP_HAL::micros();
 
     // extra check for overflow, should never happen since it will have been handled in check_frame()
@@ -250,7 +250,7 @@ bool AP_RCProtocol_CRSF::check_frame(uint32_t timestamp_us)
     if (_frame_ofs >= _frame.length + CRSF_HEADER_LEN) {
         const uint8_t crc = crc8_dvb_s2_update(0, &_frame_bytes[CRSF_HEADER_LEN], _frame.length - 1);
 
-        //debug("check_frame(0x%x, 0x%x)", _frame.device_address, _frame.length);
+        //_debug("check_frame(0x%x, 0x%x)", _frame.device_address, _frame.length);
 
         if (crc != _frame.payload[_frame.length - 2]) {
             return false;

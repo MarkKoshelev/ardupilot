@@ -35,9 +35,9 @@ class AP_RCProtocol_Backend;
 
 #if RCPROTOCOL_DEBUG
 #include <stdio.h>
-#define debug(fmt, args ...)  do {printf("%s:%d: " fmt "\n", __FUNCTION__, __LINE__, ## args); } while(0)
+#define _debug(fmt, args ...)  do {printf("%s:%d: " fmt "\n", __FUNCTION__, __LINE__, ## args); } while(0)
 #else
-#define debug(fmt, args ...)
+#define _debug(fmt, args ...)
 #endif 
 
 class AP_RCProtocol {
@@ -120,7 +120,7 @@ public:
 
     AP_RCProtocol()
 	{
-		debug("AP_RCProtocol::AP_RCProtocol()");
+		_debug("AP_RCProtocol::AP_RCProtocol()");
 	}
     ~AP_RCProtocol();
     friend class AP_RCProtocol_Backend;

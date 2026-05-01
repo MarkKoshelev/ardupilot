@@ -6,6 +6,7 @@
 #include "GPIO_RPI.h"
 #include "GPIO_RPI_BCM.h"
 #include "GPIO_RPI_RP1.h"
+#include "GPIO_RPI_OPI.h"
 #include "Util_RPI.h"
 
 extern const AP_HAL::HAL& hal;
@@ -29,6 +30,10 @@ void GPIO_RPI::init()
             break;
         case LINUX_BOARD_TYPE::RPI_5:
             gpioDriver = NEW_NOTHROW GPIO_RPI_RP1();
+            gpioDriver->init();
+            break;
+        case LINUX_BOARD_TYPE::ALLWINNWER_H616:
+            gpioDriver = NEW_NOTHROW GPIO_RPI_OPI();
             gpioDriver->init();
             break;
         default:

@@ -56,11 +56,11 @@
 #define I2C_RDRW_IOCTL_MAX_MSGS 42
 #endif
 
-#ifndef GPIO_I2C_LINUX_DEBUG
-#define GPIO_I2C_LINUX_DEBUG 1
+#ifndef LINUX_I2C_DEBUG
+#define LINUX_I2C_DEBUG 0
 #endif
 
-#if GPIO_I2C_LINUX_DEBUG
+#if LINUX_I2C_DEBUG
 #define debug(fmt, args ...)  do {printf("%s:%d: " fmt "\n", __FUNCTION__, __LINE__, ## args); } while(0)
 #else
 #define debug(fmt, args ...)

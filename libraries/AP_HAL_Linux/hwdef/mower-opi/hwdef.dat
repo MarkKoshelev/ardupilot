@@ -70,6 +70,11 @@ define HAL_PARAM_DEFAULTS_PATH "/var/ardupilot/ardupilot.parm"
 define DEBUG 0
 
 ########### 
+define LINUX_I2C_DEBUG 0
+define LINUX_SPI_DEBUG 0
+define GPIO_OPI_DEBUG 0
+define LINUX_UART_DEBUG 1
+
 define RCPROTOCOL_DEBUG 1
 define RCPROTOCOL_CRSF_DEBUG 1
 

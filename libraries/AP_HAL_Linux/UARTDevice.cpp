@@ -25,6 +25,16 @@ typedef struct {
       uint16_t channels[SBUS_NUM_CHANNELS];
     }  SbusData;
 
+#ifndef LINUX_UART_DEBUG
+#define LINUX_UART_DEBUG 0
+#endif
+
+#if LINUX_UART_DEBUG
+#define debug(fmt, args ...)  do {printf("%s:%d: " fmt "\n", __FUNCTION__, __LINE__, ## args); } while(0)
+#else
+#define debug(fmt, args ...)
+#endif 
+
 
 void SbusRx_Parse(const uint8_t *buf_,  SbusData *data_) {
 	/* Grab the channel data */
@@ -132,13 +142,11 @@ ssize_t UARTDevice::write(const uint8_t *buf, uint16_t n)
         ret = ::write(_fd, buf, n);
     }
 
-
 // SBUS parce
-
 if(n==25) {
-SbusData sbus_data;
-SbusRx_Parse(buf, &sbus_data);
-fprintf(stderr,"ch:%d,%d failsafe:%d, ch17:%d, ch18:%d, start:%d end:%d\n", sbus_data.channels[0], sbus_data.channels[1], sbus_data.failsafe,sbus_data.ch17,sbus_data.ch18,buf[0],buf[24]);
+	SbusData sbus_data;
+	SbusRx_Parse(buf, &sbus_data);
+	debug("ch:%d,%d failsafe:%d, ch17:%d, ch18:%d, start:%d end:%d\n", sbus_data.channels[0], sbus_data.channels[1], sbus_data.failsafe,sbus_data.ch17,sbus_data.ch18,buf[0],buf[24]);
 }
 
 
@@ -189,7 +197,7 @@ void UARTDevice::set_speed(uint32_t baudrate)
 {
     struct termios2 tio = { 0 };
 
-fprintf(stderr, "UARTDevice::set_speed: %s baudrate: %d\n", _device_path, baudrate);
+	debug("UARTDevice::set_speed: %s baudrate: %d\n", _device_path, baudrate);
 
 
     if (ioctl(_fd, TCGETS2, &tio) != 0) {
@@ -217,7 +225,7 @@ fprintf(stderr, "UARTDevice::set_speed: %s baudrate: %d\n", _device_path, baudra
 void UARTDevice::set_flow_control(AP_HAL::UARTDriver::flow_control flow_control_setting)
 {
 
-fprintf(stderr, "UARTDevice::set_flow_control:%s\n", _device_path);
+	debug("UARTDevice::set_flow_control:%s\n", _device_path);
 
     if (_flow_control == flow_control_setting) {
         return;
@@ -249,7 +257,7 @@ fprintf(stderr, "UARTDevice::set_flow_control:%s\n", _device_path);
 void UARTDevice::set_parity(int v)
 {
     struct termios2 t = { 0 };
-fprintf(stderr, "UARTDevice::set_parity:%s %d\n",_device_path, v);
+	debug("UARTDevice::set_parity:%s %d\n",_device_path, v);
 
     if (ioctl(_fd, TCGETS2, &t) != 0) {
         ::fprintf(stderr, "Failed to read serial options for %s - %s\n",
@@ -282,7 +290,7 @@ void UARTDevice::set_stop_bits(int n)
 {
     struct termios2 t = { 0 };
 
-fprintf(stderr, "UARTDevice::set_stop_bits: %s-%d\n",_device_path, n);
+	debug("UARTDevice::set_stop_bits: %s-%d\n",_device_path, n);
 
     if (ioctl(_fd, TCGETS2, &t) != 0) {
         ::fprintf(stderr, "Failed to read serial options for %s - %s\n",

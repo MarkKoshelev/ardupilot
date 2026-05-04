@@ -36,8 +36,8 @@
 #define ADS1115_PGA_2P048           0x02 << ADS1115_PGA_SHIFT // default
 #define ADS1115_PGA_1P024           0x03 << ADS1115_PGA_SHIFT
 #define ADS1115_PGA_0P512           0x04 << ADS1115_PGA_SHIFT
-#define ADS1115_PGA_0P256           0x05 << ADS1115_PGA_SHIFT // (+/-256mv gain 16)
-#define ADS1115_PGA_0P256B          0x06 << ADS1115_PGA_SHIFT 
+#define ADS1115_PGA_0P256           0x05 << ADS1115_PGA_SHIFT
+#define ADS1115_PGA_0P256B          0x06 << ADS1115_PGA_SHIFT
 #define ADS1115_PGA_0P256C          0x07 << ADS1115_PGA_SHIFT
 
 #define ADS1115_MV_6P144            0.187500f
@@ -173,6 +173,7 @@ size_t AP_ADC_ADS1115::read(adc_report_s *report, size_t length) const
         report[i].data = _samples[i].data;
         report[i].id = _samples[i].id;
     }
+
     return length;
 }
 

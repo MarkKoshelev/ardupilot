@@ -159,7 +159,9 @@ SPIDevice::SPIDevice(SPIBus &bus, SPIDesc &device_desc)
             AP_HAL::panic("Unable to instantiate cs pin");
             debug("SPIDevice::SPIDevice panic %d %d %d cs_pin: %d\n", _bus.bus, _desc.subdev, _desc.highspeed, _desc.cs_pin);
         }
+
         _cs->mode(HAL_GPIO_OUTPUT);
+
         // do not hold the SPI bus initially
         _cs_release();
     }

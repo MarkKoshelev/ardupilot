@@ -55,6 +55,9 @@ extern const AP_HAL::HAL& hal;
 #define SBUS_CHANNELS 16
 #define SBUS_MIN 875
 
+//TODO use debug macro
+#include <stdio.h>
+
 const AP_Param::GroupInfo AP_SBusOut::var_info[] = {
     // @Param: RATE
     // @DisplayName: SBUS default output rate
@@ -168,7 +171,6 @@ AP_SBusOut::update()
     hal.gpio->write(55, 0);
 #endif
 }
-#include <stdio.h>
 
 void AP_SBusOut::init() {
     uint16_t rate = sbus_rate.get();

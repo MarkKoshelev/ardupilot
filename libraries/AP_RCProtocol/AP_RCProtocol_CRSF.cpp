@@ -100,7 +100,6 @@ extern const AP_HAL::HAL& hal;
 //#define CRSF_DEBUG_CHARS
 //#define CRSF_DEBUG_TELEM
 //#define CRSF_DEBUG_PARAMS
-
 #if defined(CRSF_DEBUG) || defined(CRSF_DEBUG_TELEM) || defined(CRSF_DEBUG_PARAMS)
 # define debug(fmt, args...)	hal.console->printf("CRSF: " fmt "\n", ##args)
 # define get_frame_type(byte, subtype) AP_CRSF_Protocol::get_frame_type(byte, subtype)

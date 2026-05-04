@@ -39,6 +39,7 @@ public:
     void _timer_tick(void) override;
 
 private:
+//TODO remove unused
     int open_sbus(const char *path);
     int open_115200(const char *path);
 

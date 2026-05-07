@@ -45,12 +45,13 @@ LINUX_SPIDEV "mpu9250" 0   0      SPI_MODE_3 8   SPI_CS_KERNEL  1*MHZ  10*MHZ
 LINUX_SPIDEV "bmp280"  0   1      SPI_MODE_3 8   SPI_CS_KERNEL  10*MHZ 10*MHZ
 #LINUX_SPIDEV "ICM20948" 0   0      SPI_MODE_3 8   SPI_CS_KERNEL  1*MHZ 10*MHZ
 
-define HAL_LINUX_GPIO_RPI_ENABLED 1   // used for PPI GPIO - needed for RCInput 
-define HAL_LINUX_GPIO_OBAL_ENABLED 1  // used to control internal PWM outputs (through syscalls)
-define HAL_LINUX_GPIO_SYSFS_ENABLED 1 // hack: used only to suppress warning redefinition, used GPIO_RPI
+define HAL_LINUX_GPIO_RPI_ENABLED    1 // RPI & OPI native GPIO, direct pin control 
+#define HAL_LINUX_GPIO_PWM_ENABLED   1 // RPI & OPI PWM outputs through syscalls (default disable)
+#define HAL_LINUX_PCA9685_ENABLED    1 // RPI & OPI PWM outputs through PCA9685 (default disable)  
+#define HAL_LINUX_GPIO_SYSFS_ENABLED 1 // hack:  used only to suppress warning redefinition, used GPIO_RPI
 
 define CONFIG_USE_ELRS 1              // disable rcIn, used uart interface to elrs receiver (CRSF)
-define CONFIG_USE_INTERNAL_PWM 1      // use internal PWM output (diasble RCA9685)  
+#define CONFIG_USE_INTERNAL_PWM 1      // use internal PWM output (diasble RCA9685)  
 
 # ADS1115 control
 define OBAL_ALLOW_ADC            0

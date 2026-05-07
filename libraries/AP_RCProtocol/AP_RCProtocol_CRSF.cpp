@@ -22,7 +22,7 @@
 #if AP_RCPROTOCOL_CRSF_ENABLED
 
 #ifndef RCPROTOCOL_CRSF_DEBUG
-#define RCPROTOCOL_CRSF_DEBUG 0
+#define RCPROTOCOL_CRSF_DEBUG 1
 #endif
 
 #if RCPROTOCOL_CRSF_DEBUG
@@ -95,6 +95,7 @@
  */
 
 extern const AP_HAL::HAL& hal;
+
 
 //#define CRSF_DEBUG
 //#define CRSF_DEBUG_CHARS
@@ -180,6 +181,7 @@ uint16_t AP_RCProtocol_CRSF::get_link_rate(ProtocolType protocol) const {
 void AP_RCProtocol_CRSF::process_byte(uint8_t byte, uint32_t baudrate)
 {
     // reject RC data if we have been configured for standalone mode
+//_debug("AP_RCProtocol_CRSF::process_byte baudrate:%d byte:%d", baudrate, byte);
     if ((baudrate != CRSF_BAUDRATE && baudrate != CRSF_BAUDRATE_1MBIT && baudrate != CRSF_BAUDRATE_2MBIT) || _uart) {
         return;
     }
@@ -220,28 +222,35 @@ void AP_RCProtocol_CRSF::_process_byte(uint8_t byte)
 // invalid. Return true if we need more bytes
 bool AP_RCProtocol_CRSF::check_frame(uint32_t timestamp_us)
 {
+//_debug("AP_RCProtocol_CRSF::check_frame");
+
     // overflow check
     if (_frame_ofs >= sizeof(_frame)) {
+//_debug("AP_RCProtocol_CRSF::check_frame fail1 _frame_ofs:%d", _frame_ofs);
         return false;
     }
 
     // need a header to get the length
     if (_frame_ofs < CRSF_HEADER_TYPE_LEN) {
+//_debug("AP_RCProtocol_CRSF::check_frame fail2 _frame_ofs:%d", _frame_ofs);
         return true;
     }
 
     if (_frame.device_address != AP_CRSF_Protocol::CRSF_ADDRESS_FLIGHT_CONTROLLER) {
+//_debug("AP_RCProtocol_CRSF::check_frame fail3 _frame.device_address:%d", _frame.device_address);
         return false;
     }
 
     // check validity of the length byte if we have received it
     if (_frame_ofs >= CRSF_HEADER_TYPE_LEN &&
         _frame.length > CRSF_FRAME_PAYLOAD_MAX) {
+//_debug("AP_RCProtocol_CRSF::check_frame fail4");
         return false;
     }
 
     if (_frame.length < CRSF_FRAME_LENGTH_MIN) {
         // invalid short frame
+//_debug("AP_RCProtocol_CRSF::check_frame fail4");
         return false;
     }
 
@@ -425,22 +434,28 @@ bool AP_RCProtocol_CRSF::decode_crsf_packet()
             decode_11bit_channels((const uint8_t*)(&_frame.payload), CRSF_MAX_CHANNELS, _channels, 5U, 8U, 880U);
             _crsf_v3_active = false;
             rc_active = !_uart; // only accept RC data if we are not in standalone mode
+//_debug("AP_RCProtocol_CRSF::decode_crsf_packet: CRSF_FRAMETYPE_RC_CHANNELS_PACKED");
             break;
         case AP_CRSF_Protocol::CRSF_FRAMETYPE_LINK_STATISTICS:
             process_link_stats_frame((uint8_t*)&_frame.payload);
+//_debug("AP_RCProtocol_CRSF::decode_crsf_packet: CRSF_FRAMETYPE_LINK_STATISTICS");
             break;
         case AP_CRSF_Protocol::CRSF_FRAMETYPE_SUBSET_RC_CHANNELS_PACKED:
             decode_variable_bit_channels((const uint8_t*)(&_frame.payload), _frame.length, CRSF_MAX_CHANNELS, _channels);
             _crsf_v3_active = true;
             rc_active = !_uart; // only accept RC data if we are not in standalone mode
+//_debug("AP_RCProtocol_CRSF::decode_crsf_packet: CRSF_FRAMETYPE_SUBSET_RC_CHANNELS_PACKED");
             break;
         case AP_CRSF_Protocol::CRSF_FRAMETYPE_LINK_STATISTICS_RX:
             process_link_stats_rx_frame((uint8_t*)&_frame.payload);
+//_debug("AP_RCProtocol_CRSF::decode_crsf_packet: CRSF_FRAMETYPE_LINK_STATISTICS_RX");
             break;
         case AP_CRSF_Protocol::CRSF_FRAMETYPE_LINK_STATISTICS_TX:
             process_link_stats_tx_frame((uint8_t*)&_frame.payload);
+//_debug("AP_RCProtocol_CRSF::decode_crsf_packet: CRSF_FRAMETYPE_LINK_STATISTICS_TX");
             break;
         default:
+//_debug("AP_RCProtocol_CRSF::decode_crsf_packet: unknown");
             break;
     }
 #if HAL_CRSF_TELEM_ENABLED
@@ -474,6 +489,7 @@ bool AP_RCProtocol_CRSF::decode_crsf_packet()
     // process any pending baudrate changes before reading another frame
     if (_new_baud_rate > 0) {
         AP_HAL::UARTDriver *uart = get_current_UART();
+_debug("AP_RCProtocol_CRSF::decode_crsf_packet: _new_baud_rate: %d", _new_baud_rate);
 
         if (uart) {
             // wait for all the pending data to be sent

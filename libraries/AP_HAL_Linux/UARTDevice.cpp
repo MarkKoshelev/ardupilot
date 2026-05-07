@@ -225,7 +225,7 @@ void UARTDevice::set_speed(uint32_t baudrate)
 void UARTDevice::set_flow_control(AP_HAL::UARTDriver::flow_control flow_control_setting)
 {
 
-	debug("UARTDevice::set_flow_control:%s\n", _device_path);
+	debug("UARTDevice::set_flow_control:_device_path:%s flow_control_setting:%d\n", _device_path, flow_control_setting);
 
     if (_flow_control == flow_control_setting) {
         return;
@@ -290,7 +290,7 @@ void UARTDevice::set_stop_bits(int n)
 {
     struct termios2 t = { 0 };
 
-	debug("UARTDevice::set_stop_bits: %s-%d\n",_device_path, n);
+	debug("UARTDevice::set_stop_bits:_device_path:%s n:%d\n",_device_path, n);
 
     if (ioctl(_fd, TCGETS2, &t) != 0) {
         ::fprintf(stderr, "Failed to read serial options for %s - %s\n",

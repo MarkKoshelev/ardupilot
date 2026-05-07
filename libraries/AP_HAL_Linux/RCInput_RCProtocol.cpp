@@ -132,7 +132,7 @@ RCInput_RCProtocol::RCInput_RCProtocol(const char *_dev_inverted, const char *_d
 //    dev_inverted(_dev_inverted),
 //    dev_115200(_dev_115200)
 {
-debug("RCInput_RCProtocol::RCInput_RCProtocol");
+debug("RCInput_RCProtocol::RCInput_RCProtocol dev_inverted:%s dev_115200:%s", _dev_inverted, _dev_115200 );
 }
 
 void RCInput_RCProtocol::init()

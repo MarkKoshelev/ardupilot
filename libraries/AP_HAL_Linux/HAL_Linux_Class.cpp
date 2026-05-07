@@ -161,15 +161,9 @@ static RCInput_Multi rcinDriver{2, NEW_NOTHROW RCInput_AioPRU, NEW_NOTHROW RCInp
       CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BH || \
       CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_DARK || \
       CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_PXFMINI || \
-      CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_OBAL_V1 || \
       CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_CANZERO
-  #ifdef CONFIG_USE_ELRS
-  // static RCInput_RCProtocol rcinDriver{"/dev/ttyS0", NULL}; // TODO test  with /dev/ttyAMA0
-  static RCInput_RCProtocol rcinDriver{NULL, NULL}; // TODO test  with /dev/ttyAMA0
-  #else
-  TODO remove RC4
-  static RCInput_RPI rcinDriver;
-  #endif
+// this is used for PWM input
+static RCInput_RPI rcinDriver; 
 #elif AP_RCPROTOCOL_ZYNQ_ENABLED
 static RCInput_ZYNQ rcinDriver;
 #elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BEBOP
@@ -188,6 +182,13 @@ static RCInput_RCProtocol rcinDriver{"/dev/ttyAMA0", NULL};
 // this is needed to allow for RC input using SERIALn_PROTOCOL=23. No fd is opened
 // in the linux driver and instead user needs to provide a uart via SERIALn_PROTOCOL
 static RCInput_RCProtocol rcinDriver{nullptr, nullptr};
+#elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_OBAL_V1
+  #ifdef USE_RCINPUT_ELRS
+  static RCInput_RCProtocol rcinDriver{nullptr, nullptr};
+  #else
+  // this is used for PWM input
+  static RCInput_RPI rcinDriver; 
+  #endif
 #else
 static RCInput rcinDriver;
 #endif
@@ -230,14 +231,13 @@ static ap::RCOutput_Tap rcoutDriver;
 #elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_EDGE
 static RCOutput_Sysfs rcoutDriver(0, 0, 15);
 #elif  CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_OBAL_V1
-  #ifdef CONFIG_USE_INTERNAL_PWM
+  #ifdef USE_RCOUTPUT_INTERNAL_PWM
   static RCOutput_Sysfs rcoutDriver(0, 0, 2);
+  #elif  USE_RCOUTPUT_PCA9685
+  static RCOutput_PCA9685 rcoutDriver(i2c_mgr_instance.get_device_ptr(1, PCA9685_PRIMARY_ADDRESS), 0, 0, RPI_GPIO_<17>());
   #else
   static Empty::RCOutput rcoutDriver;
-// TODO
-//  static RCOutput_PCA9685 rcoutDriver(i2c_mgr_instance.get_device_ptr(1, PCA9685_PRIMARY_ADDRESS), 0, 0, RPI_GPIO_<17>());
-#endif
-
+  #endif
 #elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_CANZERO
 static RCOutput_Sysfs rcoutDriver(0, 0, 2);
 #elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_PILOTPI
@@ -263,6 +263,7 @@ static Empty::OpticalFlow opticalFlow;
 #if HAL_WITH_DSP
 static Empty::DSP dspDriver;
 #endif
+
 static Empty::Flash flashDriver;
 static Empty::WSPIDeviceManager wspi_mgr_instance;
 

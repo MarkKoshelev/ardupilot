@@ -9,6 +9,8 @@ MCU STM32H7xx STM32H743xx
 # define custom board 
 APJ_BOARD_ID AP_HW_DEVEBOXH7
 
+env USE_ALT_RAM_MAP 1
+
 # crystal frequency, setup to use external oscillator
 OSCILLATOR_HZ 25000000
 #MCU_CLOCKRATE_MHZ 450 
@@ -134,7 +136,7 @@ define HAL_BARO_ALLOW_INIT_NO_BARO 1
 
 #define HAL_USE_EMPTY_STORAGE 1
 
-DMA_PRIORITY S*
+#DMA_PRIORITY S*
 
 # use last 2 pages for flash storage
 # H743 has 16 pages of 128k each

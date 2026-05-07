@@ -21,7 +21,10 @@
 
 #if AP_RCPROTOCOL_GHST_ENABLED
 
+
+#ifndef CRSF_BAUDRATE
 #define CRSF_BAUDRATE      416666U
+#endif
 
 #include "AP_RCProtocol.h"
 #include "AP_RCProtocol_GHST.h"

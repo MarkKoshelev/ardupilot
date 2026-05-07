@@ -20,16 +20,10 @@ private:
 
 #include <AP_HAL/AP_HAL_Boards.h>
 
-#if HAL_LINUX_GPIO_RPI_ENABLED
-#include "GPIO_RPI.h"
-#endif
-
 #if HAL_LINUX_GPIO_BBB_ENABLED
 #include "GPIO_BBB.h"
 #elif HAL_LINUX_GPIO_NAVIGATOR_ENABLED
 #include "GPIO_Navigator.h"
-//#elif HAL_LINUX_GPIO_RPI_ENABLED
-//#include "GPIO_RPI.h"
 #elif HAL_LINUX_GPIO_NAVIO_ENABLED
 #define HAL_LINUX_GPIO_SYSFS_ENABLED 1
 #include "GPIO_Navio.h"
@@ -39,9 +33,10 @@ private:
 #elif HAL_LINUX_GPIO_EDGE_ENABLED
 #define HAL_LINUX_GPIO_SYSFS_ENABLED 1
 #include "GPIO_Edge.h"
-#elif HAL_LINUX_GPIO_OBAL_ENABLED
+#elif HAL_LINUX_GPIO_RPI_ENABLED
 #define HAL_LINUX_GPIO_SYSFS_ENABLED 1
-#include "GPIO_Obal.h"
+#include "GPIO_RPI.h"
+#include "GPIO_RPI_PWM.h"
 #elif HAL_LINUX_GPIO_BEBOP_ENABLED
 #define HAL_LINUX_GPIO_SYSFS_ENABLED 1
 #include "GPIO_Bebop.h"

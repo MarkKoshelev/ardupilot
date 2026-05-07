@@ -46,16 +46,21 @@ define AP_NOTIFY_BUZZER_ENABLED  1
 define HAL_BUZZER_PIN           31 
 ##########################################################################
 
-define HAL_LINUX_GPIO_RPI_ENABLED 1   // used to use low level GPIO pin control  
-define HAL_LINUX_GPIO_OBAL_ENABLED 1  // used to control internal PWM outputs (through syscalls)
-define HAL_LINUX_GPIO_SYSFS_ENABLED 1 // hack: used only to suppress warning redefinition, used GPIO_RPI pins control
+define HAL_LINUX_GPIO_RPI_ENABLED        1 // used to use low level GPIO pin control  
 
-define CONFIG_USE_ELRS 1              //  disable OBAL rcIn (PWM inputs), use uart interface to elrs receiver (CRSF)
-#define CONFIG_USE_INTERNAL_PWM 1      // use internal PWM output (diasble RCA9685)  
+#define HAL_LINUX_GPIO_SYSFS_ENABLED      1 // hack: used only to suppress warning redefinition
+#define HAL_LINUX_GPIO_SYSFS_PWM_ENABLED  1 // used to control internal PWM outputs (through syscalls)
+
+define USE_RCINPUT_ELRS 1             //  use uart interface to elrs receiver (CRSF), (OBAL only: disable PWM inputs) 
+define CRSF_BAUDRATE 115200U  //hack: force process CRSF on 115200 
+define ELRS_BAUDRATE 115200U  //hack: force process ELRS on 115200 
+
+define USE_RCOUTPUT_INTERNAL_PWM 0    //  use internal PWM output (OBAL only)  
+define USE_RCOUTPUT_PCA9685      0    //  use internal PWM output (OBAL only) 
 
 #################  ADS1115 control #########################################
-define OBAL_ALLOW_ADC            0
 
+define OBAL_ALLOW_ADC            0
 define HAL_BATT_VOLT_PIN                  0
 define HAL_BATT_CURR_PIN                  1
 define HAL_BATT_VOLT_SCALE                9.85f
@@ -67,13 +72,17 @@ define HAL_BOARD_TERRAIN_DIRECTORY "/var/ardupilot/terrain"
 define HAL_BOARD_STORAGE_DIRECTORY "/var/ardupilot"
 define HAL_PARAM_DEFAULTS_PATH "/var/ardupilot/ardupilot.parm"
 
+#disable UBLOX auto-configuration
+define AP_PARAM_GPS_AUTO_CONFIG_PARAM 0
+
 define DEBUG 0
 
 ########### 
 define LINUX_I2C_DEBUG 0
 define LINUX_SPI_DEBUG 0
 define GPIO_OPI_DEBUG 0
-define LINUX_UART_DEBUG 1
+define LINUX_UART_DEBUG 0
+define GPS_DEBUG 0
 
 define RCPROTOCOL_DEBUG 1
 define RCPROTOCOL_CRSF_DEBUG 1
@@ -85,5 +94,4 @@ define RCPROTOCOL_CRSF_DEBUG 1
 #define AP_RCPROTOCOL_ENABLED 1
 #define AP_RCPROTOCOL_СRSF_ENABLED 1
 
-// FIXME: use of this define should go away:
 define CONFIG_HAL_BOARD_SUBTYPE HAL_BOARD_SUBTYPE_LINUX_OBAL_V1

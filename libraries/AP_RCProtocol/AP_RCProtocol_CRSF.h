@@ -31,8 +31,15 @@
 #include <AP_OSD/AP_OSD_config.h>
 
 #define CRSF_FRAME_LENGTH_MIN 2 // min value for _frame.length
+
+#ifndef CRSF_BAUDRATE
 #define CRSF_BAUDRATE      416666U
+#endif
+
+#ifndef ELRS_BAUDRATE
 #define ELRS_BAUDRATE      420000U
+#endif
+
 #define CRSF_TX_TIMEOUT    500000U   // the period after which the transmitter is considered disconnected (matches copters failsafe)
 #define CRSF_RX_TIMEOUT    150000U   // the period after which the receiver is considered disconnected (>ping frequency)
 

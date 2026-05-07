@@ -73,6 +73,18 @@
 #define GPS_BAUD_TIME_MS 1200
 #define GPS_TIMEOUT_MS 4000u
 
+#ifndef GPS_DEBUG
+#define GPS_DEBUG 1
+#endif
+
+#if GPS_DEBUG
+#include <stdio.h>
+#define debug(fmt, args ...)  do {printf("%s:%d: " fmt "\n", __FUNCTION__, __LINE__, ## args); } while(0)
+#else
+#define debug(fmt, args ...)
+#endif 
+
+
 extern const AP_HAL::HAL &hal;
 
 // baudrates to try to detect GPSes with
@@ -82,7 +94,9 @@ const uint32_t AP_GPS::_baudrates[] = {9600U, 115200U, 4800U, 19200U, 38400U, 57
 // right mode.
 const char AP_GPS::_initialisation_blob[] =
 #if AP_GPS_UBLOX_ENABLED
-    UBLOX_SET_BINARY_230400
+//    UBLOX_SET_BINARY_230400
+    UBLOX_SET_BINARY_115200
+
 #endif
 #if AP_GPS_SIRF_ENABLED
     SIRF_SET_BINARY
@@ -760,6 +774,7 @@ AP_GPS_Backend *AP_GPS::_detect_instance(const uint8_t instance)
     }
 
     uint16_t bytecount = MIN(8192U, port->available());
+// debug ("AP_GPS::detect_instance: auto_config:%d bytecount:%d current_baud:%d", (int)_auto_config, bytecount, dstate->current_baud);
 
     while (bytecount-- > 0) {
         const uint8_t data = port->read();
@@ -768,10 +783,13 @@ AP_GPS_Backend *AP_GPS::_detect_instance(const uint8_t instance)
 #if AP_GPS_UBLOX_ENABLED
         if ((type == GPS_TYPE_AUTO ||
              type == GPS_TYPE_UBLOX) &&
-            ((!_auto_config && _baudrates[dstate->current_baud] >= 38400) ||
+             ((!_auto_config && _baudrates[dstate->current_baud] >= 38400) ||
              (_baudrates[dstate->current_baud] >= 115200 && option_set(DriverOptions::UBX_Use115200)) ||
              _baudrates[dstate->current_baud] == 230400) &&
             AP_GPS_UBLOX::_detect(dstate->ublox_detect_state, data)) {
+
+debug ("AP_GPS::detect_instance: AP_GPS_UBLOX detected role: NORMAL: auto_config:%d bytecount:%d current_baud:%d", (int)_auto_config, bytecount, dstate->current_baud);
+				
             return NEW_NOTHROW AP_GPS_UBLOX(*this, params[instance], state[instance], port, GPS_ROLE_NORMAL);
         }
 
@@ -786,6 +804,8 @@ AP_GPS_Backend *AP_GPS::_detect_instance(const uint8_t instance)
             } else {
                 role = GPS_ROLE_MB_ROVER;
             }
+debug ("AP_GPS::detect_instance: AP_GPS_UBLOX detected role: RTK: role:%d auto_config:%d bytecount:%d current_baud:%d", role, (int)_auto_config, bytecount, dstate->current_baud);
+
             return NEW_NOTHROW AP_GPS_UBLOX(*this, params[instance], state[instance], port, role);
         }
 #endif  // AP_GPS_UBLOX_ENABLED
@@ -822,10 +842,15 @@ AP_GPS_Backend *AP_GPS::_detect_instance(const uint8_t instance)
 #endif
                     type == GPS_TYPE_ALLYSTAR) &&
                    AP_GPS_NMEA::_detect(dstate->nmea_detect_state, data)) {
+
+debug ("AP_GPS::detect_instance: AP_GPS_UBLOX detected role: NMEA: auto_config:%d bytecount:%d current_baud:%d", (int)_auto_config, bytecount, dstate->current_baud);
+
             return NEW_NOTHROW AP_GPS_NMEA(*this, params[instance], state[instance], port);
         }
 #endif //AP_GPS_NMEA_ENABLED
     }
+
+//debug ("AP_GPS::detect_instance:failed");
 
     return nullptr;
 }

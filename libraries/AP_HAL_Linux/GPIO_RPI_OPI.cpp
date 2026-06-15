@@ -658,12 +658,14 @@ static int wiringPiMode = WPI_MODE_UNINITIALISED ;
 static volatile int    pinPass = -1 ;
 // Debugging & Return codes
 
-int wiringPiDebug       = FALSE ;
-//int wiringPiDebug     = TRUE ;
+#if GPIO_OPI_DEBUG
+int wiringPiDebug     = TRUE ;
+#else
+int wiringPiDebug     = FALSE ;
+#endif 
 int wiringPiReturnCodes = FALSE ;
 
 // Use /dev/gpiomem ?
-
 int wiringPiTryGpioMem  = FALSE ;
 
 sunxi_gpio_info sunxi_gpio_info_t;
@@ -4797,7 +4799,7 @@ int wiringPiSetup (void)
 	if (getenv (ENV_DEBUG) != NULL)
 		wiringPiDebug = TRUE ;
 */
-	wiringPiDebug = FALSE ;
+//	wiringPiDebug = FALSE ;
 	
 	if (getenv (ENV_CODES) != NULL)
 		wiringPiReturnCodes = TRUE ;
@@ -8919,7 +8921,7 @@ uint8_t GPIO_RPI_OPI::read(uint8_t pin)
 
 void GPIO_RPI_OPI::write(uint8_t pin, uint8_t value)
 {
-   // debug("write pin: %d value %d\n", pin, value);
+    debug("GPIO_RPI_OPI::write: pin: %d value %d\n", pin, value);
 	digitalWrite(pin, value);
 }
 

@@ -774,7 +774,7 @@ AP_GPS_Backend *AP_GPS::_detect_instance(const uint8_t instance)
     }
 
     uint16_t bytecount = MIN(8192U, port->available());
-// debug ("AP_GPS::detect_instance: auto_config:%d bytecount:%d current_baud:%d", (int)_auto_config, bytecount, dstate->current_baud);
+ // debug ("AP_GPS::detect_instance: auto_config:%d bytecount:%d current_baud:%d DriverOptions::UBX_Use115200:%d", (int)_auto_config, bytecount, dstate->current_baud, DriverOptions::UBX_Use115200);
 
     while (bytecount-- > 0) {
         const uint8_t data = port->read();
@@ -785,13 +785,13 @@ AP_GPS_Backend *AP_GPS::_detect_instance(const uint8_t instance)
              type == GPS_TYPE_UBLOX) &&
              ((!_auto_config && _baudrates[dstate->current_baud] >= 38400) ||
              (_baudrates[dstate->current_baud] >= 115200 && option_set(DriverOptions::UBX_Use115200)) ||
-             _baudrates[dstate->current_baud] == 230400) &&
-            AP_GPS_UBLOX::_detect(dstate->ublox_detect_state, data)) {
-
-debug ("AP_GPS::detect_instance: AP_GPS_UBLOX detected role: NORMAL: auto_config:%d bytecount:%d current_baud:%d", (int)_auto_config, bytecount, dstate->current_baud);
-				
-            return NEW_NOTHROW AP_GPS_UBLOX(*this, params[instance], state[instance], port, GPS_ROLE_NORMAL);
-        }
+             _baudrates[dstate->current_baud] == 230400)) {
+				debug ("AP_GPS::detect_instance: AP_GPS_UBLOX detected role: NORMAL: auto_config:%d bytecount:%d current_baud:%d", (int)_auto_config, bytecount, dstate->current_baud);
+                if (AP_GPS_UBLOX::_detect(dstate->ublox_detect_state, data)) {
+					debug ("AP_GPS::detected_ublox: AP_GPS_UBLOX detected role: NORMAL: auto_config:%d bytecount:%d current_baud:%d", (int)_auto_config, bytecount, dstate->current_baud);
+					return NEW_NOTHROW AP_GPS_UBLOX(*this, params[instance], state[instance], port, GPS_ROLE_NORMAL);
+				}
+		}	
 
         const uint32_t ublox_mb_required_baud = option_set(DriverOptions::UBX_MBUseUart2)?230400:460800;
         if ((type == GPS_TYPE_UBLOX_RTK_BASE ||

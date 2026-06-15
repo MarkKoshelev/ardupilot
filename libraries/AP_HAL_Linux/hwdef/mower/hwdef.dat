@@ -1,61 +1,67 @@
 # mower Rastwerry Pi 2W for Linux
 
-################ IMUs: GY-91
-IMU Invensense SPI:mpu9250 ROTATION_NONE
-COMPASS AK8963:probe_mpu9250 0 ROTATION_NONE
+####################### I2C ############################################
+#I2C compass
+COMPASS QMC5883P I2C:1:0x2C false ROTATION_ROLL_180_YAW_90
+define AP_COMPASS_PROBING_ENABLED 1
 
-#BARO for GY-91 - конфликт с расширителем UART
-#BARO BMP280 SPI:bmp280
-
-##############  IMUs ICM20948 ####################
-# ROTATION_* from rotations.h file
-IMU Invensensev2 SPI:ICM20948 ROTATION_NONE
-COMPASS AK09916:probe_ICM20948_SPI 0 ROTATION_NONE
-
-define INS_MAX_INSTANCES 3
-#define AP_COMPASS_PROBING_ENABLED 1
-
-# bus:1 for RPi,  bus:3 for Opi
-BARO BMP085 I2C:1:0x77
+# bus:1 for RPi, bus:3 for Opi
+#BARO BMP085 I2C:1:0x77
 define HAL_BARO_ALLOW_INIT_NO_BARO
 
 # INA226 battery monitor default address  0x40
-# bus:1 for RPi,  bus:3 for Opi
-//define HAL_BATTMON_INA2XX_BUS 1
-//define HAL_BATTMON_INA2XX_ADDR 64
-//define HAL_BATT_MONITOR_DEFAULT 21
+# bus:1 for RPi
+define HAL_BATTMON_INA2XX_BUS 1
+define HAL_BATTMON_INA2XX_ADDR 64
+define HAL_BATT_MONITOR_DEFAULT 21
+
+####################### GPIO: LEDS, BUZZER ##############################
+define DEFAULT_NTF_LED_TYPES (Notify_LED_Board)
+define AP_NOTIFY_GPIO_LED_2_ENABLED 1
+define HAL_GPIO_A_LED_PIN       5  // 27 // You can choose between 27,22,4,12
+define HAL_GPIO_B_LED_PIN       6  // 4  // You can choose between 27,22,4,12
+#define HAL_GPIO_C_LED_PIN      19 // 22 // You can choose between 27,22,4,12
+define HAL_GPIO_LED_ON          1
+
+define AP_NOTIFY_BUZZER_ENABLED  1
+define HAL_BUZZER_PIN            26 //12 // You can choose between 27,22,4,12
+#########################################################################
+
+#            NAME      BUS SUBDEV MODE       BPW CS_PIN         LOWSPD HIGHSPD
+#LINUX_SPIDEV "mpu9250" 0   0      SPI_MODE_3 8   SPI_CS_KERNEL  1*MHZ  10*MHZ
+#LINUX_SPIDEV "bmp280"  0   1      SPI_MODE_3 8   SPI_CS_KERNEL  10*MHZ 10*MHZ
+################ IMUs: GY-91
+
+IMU Invensense SPI:mpu9250 ROTATION_NONE
+COMPASS AK8963:probe_mpu9250 0 ROTATION_NONE
+#BARO for GY-91 - конфликт с расширителем UART
+#BARO BMP280 SPI:bmp280
+
+#            NAME      BUS SUBDEV   MODE   BPW    CS_PIN       LOWSPD HIGHSPD
+LINUX_SPIDEV "mpu6500"  0   0   SPI_MODE_3  8   SPI_CS_KERNEL  1*MHZ  4*MHZ
+LINUX_SPIDEV "ICM20948" 0   0   SPI_MODE_3  8   SPI_CS_KERNEL  1*MHZ  10*MHZ
+
+##############  IMUs ICM20948 ####################
+# ROTATION_* from rotations.h file
+IMU Invensensev2 SPI:ICM20948 ROTATION_YAW_270
+#COMPASS AK09916:probe_ICM20948_SPI 0 ROTATION_NONE
+define INS_MAX_INSTANCES 3
+
+define USE_RCINPUT_ELRS 1             //  use uart interface to elrs receiver (CRSF), (OBAL only: disable PWM inputs) 
+define CRSF_BAUDRATE 115200U  //hack: force process CRSF on 115200 
+define ELRS_BAUDRATE 115200U  //hack: force process ELRS on 115200 
+
+define HAL_LINUX_GPIO_RPI_ENABLED    1 // RPI & OPI native GPIO, direct pin control 
+define USE_RCOUTPUT_INTERNAL_PWM 0    //  use internal PWM output (OBAL only)  
+define USE_RCOUTPUT_PCA9685      0    //  use internal PWM output (OBAL only) 
 
 define HAL_BOARD_LOG_DIRECTORY "/var/ardupilot/logs"
 define HAL_BOARD_TERRAIN_DIRECTORY "/var/ardupilot/terrain"
 define HAL_BOARD_STORAGE_DIRECTORY "/var/ardupilot"
 define HAL_PARAM_DEFAULTS_PATH "/var/ardupilot/ardupilot.parm"
 
-define DEFAULT_NTF_LED_TYPES (Notify_LED_Board)
-define AP_NOTIFY_GPIO_LED_2_ENABLED 1
-define HAL_GPIO_A_LED_PIN       27 // You can choose between 27,22,4,12
-define HAL_GPIO_B_LED_PIN       4  // You can choose between 27,22,4,12
-#define HAL_GPIO_C_LED_PIN       22 // You can choose between 27,22,4,12
-define HAL_GPIO_LED_ON          1
-
-define AP_NOTIFY_BUZZER_ENABLED  1
-define HAL_BUZZER_PIN           12 // You can choose between 27,22,4,12
-
-#            NAME      BUS SUBDEV MODE       BPW CS_PIN         LOWSPD HIGHSPD
-LINUX_SPIDEV "mpu9250" 0   0      SPI_MODE_3 8   SPI_CS_KERNEL  1*MHZ  10*MHZ
-LINUX_SPIDEV "bmp280"  0   1      SPI_MODE_3 8   SPI_CS_KERNEL  10*MHZ 10*MHZ
-#LINUX_SPIDEV "ICM20948" 0   0      SPI_MODE_3 8   SPI_CS_KERNEL  1*MHZ 10*MHZ
-
-define HAL_LINUX_GPIO_RPI_ENABLED    1 // RPI & OPI native GPIO, direct pin control 
-#define HAL_LINUX_GPIO_PWM_ENABLED   1 // RPI & OPI PWM outputs through syscalls (default disable)
-#define HAL_LINUX_PCA9685_ENABLED    1 // RPI & OPI PWM outputs through PCA9685 (default disable)  
-#define HAL_LINUX_GPIO_SYSFS_ENABLED 1 // hack:  used only to suppress warning redefinition, used GPIO_RPI
-
-define CONFIG_USE_ELRS 1              // disable rcIn, used uart interface to elrs receiver (CRSF)
-#define CONFIG_USE_INTERNAL_PWM 1      // use internal PWM output (diasble RCA9685)  
-
 # ADS1115 control
-define OBAL_ALLOW_ADC            0
-
+define OBAL_ALLOW_ADC                     0
 define HAL_BATT_VOLT_PIN                  0
 define HAL_BATT_CURR_PIN                  1
 define HAL_BATT_VOLT_SCALE                9.85f
@@ -67,8 +73,18 @@ define DEBUG 0
 #define CRSF_DEBUG_TELEM 1
 #define CRSF_DEBUG_PARAMS 1
 
-#define AP_RCPROTOCOL_ENABLED 1
-#define AP_RCPROTOCOL_СRSF_ENABLED 1
+define RCPROTOCOL_DEBUG 1
+define RCPROTOCOL_CRSF_DEBUG 1
+
+define GPS_DEBUG 1
+define NMEA_OUTPUT_RTCM_DEBUG 1  //debug RTCM correction throught NMEA_Output.cpp
+
+#TODO disable UBLOX auto-configuration
+#define AP_PARAM_GPS_AUTO_CONFIG_PARAM 0
+
+# TODO set NMEA_Output params
+# define AP_PARAM_NMEA_MSG_EN_PARAM 0
+# define AP_PARAM_NMEA_RATE_MS_PARAM 50
 
 // FIXME: use of this define should go away:
 define CONFIG_HAL_BOARD_SUBTYPE HAL_BOARD_SUBTYPE_LINUX_OBAL_V1

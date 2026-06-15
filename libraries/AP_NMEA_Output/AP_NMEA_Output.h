@@ -26,6 +26,10 @@
 #ifndef NMEA_MAX_OUTPUTS
 #define NMEA_MAX_OUTPUTS 3
 #endif
+#ifndef GPS_MAX_RECEIVERS
+#define GPS_MAX_RECEIVERS 1
+#endif
+
 
 #include <AP_Param/AP_Param.h>
 
@@ -57,6 +61,9 @@ private:
 
     uint8_t _num_outputs;
     AP_HAL::UARTDriver* _uart[NMEA_MAX_OUTPUTS];
+    
+    uint8_t _gps_uart_idx;
+	AP_HAL::UARTDriver* _gps_uart[GPS_MAX_RECEIVERS];
 
     uint32_t _last_run_ms;
 

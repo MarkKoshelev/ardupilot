@@ -23,6 +23,7 @@
 
 #if HAL_NMEA_OUTPUT_ENABLED
 
+#include <AP_Math/AP_Math.h>
 #include <AP_Math/definitions.h>
 #include <AP_RTC/AP_RTC.h>
 #include <AP_GPS/AP_GPS.h>
@@ -43,10 +44,22 @@
 #define AP_NMEA_OUTPUT_INTERVAL_MS_MIN              10
 #define AP_NMEA_OUTPUT_INTERVAL_MS_MAX              5000
 
+#ifndef NMEA_OUTPUT_RTCM_DEBUG
+#define NMEA_OUTPUT_RTCM_DEBUG 1
+#endif
+
+#if NMEA_OUTPUT_RTCM_DEBUG
+#include <stdio.h>
+#define debug(fmt, args ...)  do {printf("%s:%d: " fmt "\n", __FUNCTION__, __LINE__, ## args); } while(0)
+#else
+#define debug(fmt, args ...)
+#endif 
+
+
 extern const AP_HAL::HAL& hal;
 
 const AP_Param::GroupInfo AP_NMEA_Output::var_info[] = {
-
+	// Set in Full Parametr List: NMEA_MSG_EN, NMEA_RATE_MS
     // @Param: RATE_MS
     // @DisplayName: NMEA Output rate
     // @Description: NMEA Output rate. This controls the interval at which all the enabled NMEA messages are sent. Most NMEA systems expect 100ms (10Hz) or slower.
@@ -79,20 +92,50 @@ void AP_NMEA_Output::init()
         }
         _num_outputs++;
     }
-}
+    // search for serial ports with gps protocol
+    _gps_uart_idx = 0;
+    for (uint8_t i=0; i<ARRAY_SIZE(_gps_uart); i++) {
+            _gps_uart[i] = sm.find_serial(AP_SerialManager::SerialProtocol_GPS, _gps_uart_idx);
+            _gps_uart_idx++;
+    }
+	debug("AP_NMEA_Output::init NMEA:%d, GPS:%d", _num_outputs, _gps_uart_idx);
+	}
 
 void AP_NMEA_Output::update()
 {
-    if (_num_outputs == 0 || _message_enable_bitmask == 0) {
-        return;
-    }
-
+	
     const uint32_t now_ms = AP_HAL::millis();
-
-    if ((now_ms - _last_run_ms) < static_cast<uint32_t>(MAX(_interval_ms.get(), 20))) {
+    uint32_t interval = static_cast<uint32_t>(MAX(_interval_ms.get(), 20));
+    if ((now_ms - _last_run_ms) < interval) {
         return;
     }
     _last_run_ms = now_ms;
+
+    // read from NMEA port, and write to the first GPS port
+	uint8_t buf[2048];
+ 
+    for (uint8_t i = 0; i < ARRAY_SIZE(_uart) && _uart[i] != nullptr && _gps_uart[0] != nullptr; i++) {
+		ssize_t rbytes = _uart[i]->read(buf, MIN(sizeof(buf),_gps_uart[0]->txspace()));
+#if NMEA_OUTPUT_RTCM_DEBUG
+		size_t wbytes = 0;
+#endif		
+		if (rbytes > 0 ) {
+#if NMEA_OUTPUT_RTCM_DEBUG
+			wbytes = _gps_uart[0]->write(buf, rbytes);
+#else
+			_gps_uart[0]->write(buf, rbytes);
+#endif
+			debug("AP_NMEA_Output::update rbytes:%d wbytes:%d interval:%d type:0x%X", rbytes, wbytes, interval, buf[0]);
+		}
+//		debug("AP_NMEA_Output::update rbytes:%ld wbytes:%ld interval:%d type:0x%X", rbytes, wbytes, interval, buf[0]);
+//		debug("AP_NMEA_Output::update rbytes:%d wbytes:%d interval:%d type:0x%X", rbytes, wbytes, interval, buf[0]);
+		break;
+	}
+
+    if (_num_outputs == 0 || _message_enable_bitmask == 0) { // disable NMAEA output if _message_enable_bitmask == 0
+        return;
+    }
+
 
     // get time and date
     uint64_t time_usec;

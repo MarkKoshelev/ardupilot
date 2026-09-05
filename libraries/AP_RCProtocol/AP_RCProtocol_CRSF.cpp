@@ -22,7 +22,7 @@
 #if AP_RCPROTOCOL_CRSF_ENABLED
 
 #ifndef RCPROTOCOL_CRSF_DEBUG
-#define RCPROTOCOL_CRSF_DEBUG 1
+#define RCPROTOCOL_CRSF_DEBUG 0
 #endif
 
 #if RCPROTOCOL_CRSF_DEBUG
@@ -31,7 +31,6 @@
 #else
 #define _debug(fmt, args ...)
 #endif 
-
 
 #include "AP_RCProtocol.h"
 #include "AP_RCProtocol_CRSF.h"

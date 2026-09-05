@@ -68,7 +68,7 @@ PA5 SPI1_SCK  SPI1
 PA6 SPI1_MISO SPI1
 PA7 SPI1_MOSI SPI1 
 
-#TF CARD - internal connected (for logging)
+#SD CARD - internal connected (for logging)
 PC8 SDIO_D0 SDIO
 PC9 SDIO_D1 SDIO
 PC10 SDIO_D2 SDIO
@@ -149,7 +149,6 @@ IMU Invensense SPI:mpu6500 ROTATION_YAW_180
 #SPIDEV sdcard     SPI2 DEVID2 SDCARD_CS MODE0 400*KHZ 25*MHZ
 #SPIDEV bmp280     SPI3 DEVID3 BMP280_CS MODE3 1*MHZ 8*MHZ
 
-
 STORAGE_FLASH_PAGE 1
 define HAL_STORAGE_SIZE 15360
 # LOG_BACKEND_TYPE 2
@@ -164,6 +163,9 @@ define HAL_BATT_VOLT_SCALE 11
 define HAL_BATT_CURR_SCALE 18.2
 
 #define HAL_CRSF_TELEM_ENABLED 1
+define CRSF_BAUDRATE 115200U  //hack: force process CRSF on 115200 
+define ELRS_BAUDRATE 115200U  //hack: force process ELRS on 115200 
+
 
 #-------------minimize flash ----------------------
 include ../include/minimize_features.inc 

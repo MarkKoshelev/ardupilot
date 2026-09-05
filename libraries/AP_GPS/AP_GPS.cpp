@@ -74,7 +74,7 @@
 #define GPS_TIMEOUT_MS 4000u
 
 #ifndef GPS_DEBUG
-#define GPS_DEBUG 1
+#define GPS_DEBUG 0
 #endif
 
 #if GPS_DEBUG

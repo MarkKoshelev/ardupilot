@@ -142,13 +142,14 @@ ssize_t UARTDevice::write(const uint8_t *buf, uint16_t n)
         ret = ::write(_fd, buf, n);
     }
 
-// SBUS parce
+// SBUS
 if(n==25) {
 	SbusData sbus_data;
 	SbusRx_Parse(buf, &sbus_data);
-	debug("ch:%d,%d failsafe:%d, ch17:%d, ch18:%d, start:%d end:%d\n", sbus_data.channels[0], sbus_data.channels[1], sbus_data.failsafe,sbus_data.ch17,sbus_data.ch18,buf[0],buf[24]);
+	debug("ch1:%d, ch2:%d, ch3:%d, ch4:%d, ch5:%d, ch6:%d,  ch7:%d, ch8:%d ch9:%d ch10:%d failsafe:%d, ch17:%d, ch18:%d, start:%d end:%d\n", \
+	sbus_data.channels[0], sbus_data.channels[1], sbus_data.channels[2], sbus_data.channels[3], sbus_data.channels[4], sbus_data.channels[5],sbus_data.channels[6], sbus_data.channels[7], sbus_data.channels[8], sbus_data.channels[9],\
+	sbus_data.failsafe,sbus_data.ch17,sbus_data.ch18,buf[0],buf[24]);
 }
-
 
     return ret;
 }

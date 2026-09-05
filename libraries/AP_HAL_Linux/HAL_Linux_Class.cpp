@@ -231,7 +231,7 @@ static ap::RCOutput_Tap rcoutDriver;
 #elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_EDGE
 static RCOutput_Sysfs rcoutDriver(0, 0, 15);
 #elif  CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_OBAL_V1
-  #ifdef USE_RCOUTPUT_INTERNAL_PWM
+  #if USE_RCOUTPUT_INTERNAL_PWM
   static RCOutput_Sysfs rcoutDriver(0, 0, 2);
   #elif  USE_RCOUTPUT_PCA9685
   static RCOutput_PCA9685 rcoutDriver(i2c_mgr_instance.get_device_ptr(1, PCA9685_PRIMARY_ADDRESS), 0, 0, RPI_GPIO_<17>());
